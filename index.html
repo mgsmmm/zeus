@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lazada - Online Shopping Philippines | Best Deals & Fast Delivery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lazada Mobile App - Online Shopping Philippines</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Inter & Montserrat -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script>
     tailwind.config = {
@@ -17,12 +17,12 @@
         extend: {
           colors: {
             lazada: {
+              orange: '#f57224',
+              orangeDark: '#d95a0e',
               navy: '#0f1568',
               navyDark: '#080c3e',
-              orange: '#f57224',
-              orangeHover: '#d95a0e',
               pink: '#ff007a',
-              lightBg: '#eff0f5',
+              bgLight: '#f4f4f6',
               greyText: '#757575',
               badgeGreen: '#00b159',
               badgeBlue: '#1a9cb7'
@@ -37,27 +37,22 @@
   </script>
 
   <style>
-    /* Custom Scrollbars */
+    /* Mobile App Custom Scrollbars */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 0px;
+      height: 0px;
     }
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #f57224;
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Glassmorphism & Animations */
+    /* Toast Animation */
     .toast-slide {
-      animation: slideIn 0.3s ease-out forwards, fadeOut 0.3s ease-in 2.7s forwards;
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards, fadeOut 0.3s ease-in 2.4s forwards;
     }
-    @keyframes slideIn {
+    @keyframes slideDown {
       from { transform: translateY(-100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
@@ -66,533 +61,474 @@
       to { opacity: 0; }
     }
 
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
+    /* Bottom Sheet Animation */
+    .bottom-sheet-enter {
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    /* Frame Styling */
+    body.device-mockup {
+      background-color: #1e1e24;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .mobile-frame {
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      max-height: 880px;
+      background-color: #f4f4f6;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    @media (min-width: 640px) {
+      .mobile-frame {
+        border-radius: 40px;
+        border: 10px solid #121212;
+      }
     }
   </style>
 </head>
-<body class="bg-[#eff0f5] text-gray-800 font-sans antialiased selection:bg-lazada-orange selection:text-white pb-12">
+<body id="app-body" class="device-mockup font-sans antialiased text-gray-800 selection:bg-lazada-orange selection:text-white">
 
-  <!-- TOAST CONTAINER -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <!-- VIEW MODE TOGGLE (FLOATING DESKTOP CONTROL) -->
+  <div class="fixed top-3 right-3 z-50 bg-black/80 backdrop-blur-md text-white text-xs px-3 py-2 rounded-full shadow-lg flex items-center gap-2 border border-white/20">
+    <span class="text-[10px] uppercase tracking-wider font-bold text-gray-300">View:</span>
+    <button onclick="toggleViewMode('frame')" id="btn-mode-frame" class="bg-lazada-orange px-2.5 py-1 rounded-full font-bold transition">Mobile Frame</button>
+    <button onclick="toggleViewMode('full')" id="btn-mode-full" class="bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded-full font-bold transition">Full Viewport</button>
+  </div>
 
-  <!-- TOP UTILITY BAR -->
-  <header class="bg-[#f5f5f5] text-xs text-gray-600 border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-8">
-      <!-- Left side links -->
-      <div class="flex items-center space-x-6">
-        <a href="#" class="hover:text-lazada-orange transition">SAVE MORE ON APP</a>
-        <a href="#" class="hover:text-lazada-orange transition">SELL ON LAZADA</a>
-        <a href="#" class="hover:text-lazada-orange transition">CUSTOMER CARE</a>
-        <a href="#" class="hover:text-lazada-orange transition hidden sm:inline">TRACK MY ORDER</a>
+  <!-- APP CONTAINER / PHONE MOCKUP -->
+  <div id="phone-container" class="mobile-frame flex flex-col">
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="absolute top-12 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- MOBILE STATUS BAR -->
+    <div class="bg-gradient-to-r from-lazada-navy via-indigo-900 to-lazada-orange text-white px-5 pt-2 pb-1 flex justify-between items-center text-[11px] font-bold tracking-tight shrink-0 select-none z-30">
+      <span>9:41</span>
+      <!-- Phone Notch / Camera Pill -->
+      <div class="w-20 h-4 bg-black/40 rounded-full flex items-center justify-center">
+        <div class="w-2.5 h-2.5 bg-black rounded-full border border-gray-700"></div>
       </div>
-      <!-- Right side options -->
-      <div class="flex items-center space-x-5 font-medium">
-        <a href="#" class="hover:text-lazada-orange transition uppercase text-lazada-orange font-bold">LOGIN</a>
-        <span class="text-gray-300">|</span>
-        <a href="#" class="hover:text-lazada-orange transition uppercase">SIGNUP</a>
-        <span class="text-gray-300">|</span>
-        <div class="relative group cursor-pointer py-1">
-          <span class="flex items-center gap-1 hover:text-lazada-orange">
-            <i class="fa-solid font-bold text-xs fa-globe"></i> PHP / EN <i class="fa-solid fa-chevron-down text-[10px]"></i>
-          </span>
-          <div class="absolute right-0 top-full hidden group-hover:block bg-white shadow-lg rounded-md border py-1 w-28 z-50">
-            <button onclick="showToast('Language set to English')" class="w-full text-left px-3 py-1.5 hover:bg-gray-100 flex items-center justify-between">English <i class="fa-solid fa-check text-lazada-orange"></i></button>
-            <button onclick="showToast('Filipino selected')" class="w-full text-left px-3 py-1.5 hover:bg-gray-100">Filipino</button>
-          </div>
-        </div>
+      <div class="flex items-center space-x-1.5">
+        <i class="fa-solid fa-signal text-[10px]"></i>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
       </div>
     </div>
-  </header>
 
-  <!-- MAIN HEADER (NAVBAR) -->
-  <div class="sticky top-0 bg-white shadow-md z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
-      
-      <!-- LOGO -->
-      <a href="#" class="flex items-center gap-1 shrink-0 group">
-        <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-lazada-navy via-lazada-orange to-lazada-pink text-white font-extrabold text-xl shadow-md group-hover:scale-105 transition">
-          <i class="fa-solid fa-heart text-white text-lg"></i>
-        </div>
-        <div class="flex flex-col leading-none">
-          <span class="text-2xl font-black tracking-tight text-lazada-navy italic">Lazada</span>
-          <span class="text-[9px] tracking-wider text-lazada-orange font-bold uppercase -mt-1">Go Where Your Heart Beats</span>
-        </div>
-      </a>
-
-      <!-- SEARCH BAR -->
-      <div class="flex-1 max-w-3xl relative">
-        <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden border-2 border-lazada-orange focus-within:ring-2 focus-within:ring-lazada-orange/50 transition">
-          <div class="hidden sm:flex items-center px-3 text-xs font-semibold text-gray-600 bg-gray-200 border-r border-gray-300 h-10 cursor-pointer hover:bg-gray-300">
-            <span id="selected-category-text">All Categories</span>
-            <i class="fa-solid fa-chevron-down ml-2 text-[10px]"></i>
-          </div>
-          <input 
-            type="text" 
-            id="search-input" 
-            placeholder="Search in Lazada (e.g. Wireless Earbuds, Mechanical Keyboard, Sneakers)" 
-            class="w-full px-4 py-2 text-sm bg-transparent focus:outline-none"
-            oninput="handleSearch()"
-          />
-          <button 
-            onclick="triggerSearch()"
-            class="bg-lazada-orange hover:bg-lazada-orangeHover text-white px-6 py-2.5 flex items-center justify-center transition font-semibold text-sm">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </button>
-        </div>
-
-        <!-- SEARCH AUTOCOMPLETE / LIVE RESULTS -->
-        <div id="search-results-dropdown" class="absolute left-0 right-0 top-full mt-1 bg-white shadow-2xl rounded-lg border border-gray-100 hidden z-50 max-h-80 overflow-y-auto">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-
-      <!-- SHOPPING CART ICON & QUICK BADGE -->
-      <div class="flex items-center gap-6 shrink-0">
-        <button onclick="toggleCartDrawer()" class="relative p-2 text-lazada-navy hover:text-lazada-orange transition flex items-center">
-          <i class="fa-solid fa-cart-shopping text-2xl"></i>
-          <span id="cart-count-badge" class="absolute -top-1 -right-1 bg-lazada-orange text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+    <!-- MAIN APP APPBAR (HEADER & SEARCH) -->
+    <header class="bg-gradient-to-r from-lazada-navy via-indigo-900 to-lazada-orange text-white px-3 pt-2 pb-2 shrink-0 z-20 shadow-md">
+      <div class="flex items-center gap-2">
+        
+        <!-- QR Scanner Icon -->
+        <button onclick="showToast('📷 Camera QR Scanner active')" class="p-1.5 hover:bg-white/10 rounded-full transition text-lg shrink-0">
+          <i class="fa-solid fa-qrcode"></i>
         </button>
-        <a href="#" class="hidden lg:block shrink-0">
-          <img src="https://placehold.co/140x40/0f1568/FFFFFF?text=NEW+USER+$10+OFF" alt="Promo" class="h-9 rounded shadow-sm hover:opacity-95 transition">
-        </a>
-      </div>
-    </div>
 
-    <!-- CATEGORY NAVIGATION BAR & MEGA MENU -->
-    <nav class="border-t border-gray-100 bg-white hidden md:block text-xs font-medium text-gray-700">
-      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
-        <div class="flex items-center space-x-8">
-          <!-- Categories Dropdown Trigger -->
-          <div class="relative group py-2.5">
-            <button class="flex items-center font-bold text-lazada-navy hover:text-lazada-orange gap-2 uppercase tracking-wide">
-              <i class="fa-solid fa-bars text-sm"></i> Categories <i class="fa-solid fa-chevron-down text-[10px]"></i>
+        <!-- Search Bar -->
+        <div class="flex-1 relative flex items-center">
+          <div class="w-full bg-white text-gray-800 rounded-full flex items-center px-3 py-1.5 shadow-inner">
+            <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs mr-2"></i>
+            <input 
+              type="text" 
+              id="search-input"
+              placeholder="Search in Lazada" 
+              class="w-full text-xs bg-transparent focus:outline-none placeholder-gray-400 font-medium"
+              oninput="handleSearch()"
+            />
+            <button onclick="showToast('📷 Image Search activated')" class="text-gray-400 hover:text-lazada-orange px-1">
+              <i class="fa-solid fa-camera text-sm"></i>
             </button>
-            
-            <!-- MEGA MENU DROPDOWN -->
-            <div class="absolute top-full left-0 hidden group-hover:grid grid-cols-4 w-[750px] bg-white shadow-2xl rounded-b-xl border border-gray-100 p-5 gap-6 z-50">
-              <div>
-                <h4 class="font-bold text-lazada-navy mb-2 border-b pb-1 flex items-center gap-1.5"><i class="fa-solid fa-laptop text-lazada-orange"></i> Electronics</h4>
-                <ul class="space-y-1.5 text-gray-600">
-                  <li><a href="#" onclick="filterByCategory('Electronics')" class="hover:text-lazada-orange block">Smartphones & Tablets</a></li>
-                  <li><a href="#" onclick="filterByCategory('Electronics')" class="hover:text-lazada-orange block">Laptops & Computers</a></li>
-                  <li><a href="#" onclick="filterByCategory('Electronics')" class="hover:text-lazada-orange block">Audio & Headphones</a></li>
-                  <li><a href="#" onclick="filterByCategory('Electronics')" class="hover:text-lazada-orange block">Smart Watches</a></li>
-                </ul>
+          </div>
+
+          <!-- Live Search Results Dropdown -->
+          <div id="search-dropdown" class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 hidden z-50 max-h-60 overflow-y-auto text-gray-800">
+            <!-- Dynamic JS -->
+          </div>
+        </div>
+
+        <!-- Message Center -->
+        <button onclick="switchTab('messages')" class="relative p-1.5 hover:bg-white/10 rounded-full transition text-lg shrink-0">
+          <i class="fa-regular fa-comment-dots"></i>
+          <span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-lazada-navy">3</span>
+        </button>
+
+        <!-- Cart Icon -->
+        <button onclick="openCartDrawer()" class="relative p-1.5 hover:bg-white/10 rounded-full transition text-lg shrink-0">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span id="cart-badge-count" class="absolute top-0 right-0 bg-lazada-orange text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-lazada-navy">0</span>
+        </button>
+      </div>
+
+      <!-- HORIZONTAL SCROLLABLE CATEGORY TABS -->
+      <nav class="flex items-center space-x-5 overflow-x-auto text-xs font-bold pt-2.5 px-1 scrollbar-none whitespace-nowrap opacity-95">
+        <button onclick="filterCategory('For You', this)" class="category-tab border-b-2 border-white pb-1 text-white">For You</button>
+        <button onclick="filterCategory('LazMall', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">LazMall</button>
+        <button onclick="filterCategory('Choice', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">Choice</button>
+        <button onclick="filterCategory('LazFlash', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">LazFlash</button>
+        <button onclick="filterCategory('Beauty', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">Beauty</button>
+        <button onclick="filterCategory('Fashion', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">Fashion</button>
+        <button onclick="filterCategory('Electronics', this)" class="category-tab border-b-2 border-transparent pb-1 text-white/80 hover:text-white">Electronics</button>
+      </nav>
+    </header>
+
+    <!-- SCREEN VIEWPORT / SCROLLABLE CONTENT AREA -->
+    <div id="main-scroll-view" class="flex-1 overflow-y-auto bg-[#f4f4f6] pb-16">
+
+      <!-- VIEW 1: HOME PAGE CONTENT -->
+      <div id="view-home" class="space-y-3 p-2.5">
+
+        <!-- PROMOTIONAL HERO BANNER CAROUSEL -->
+        <div class="relative rounded-2xl overflow-hidden shadow-sm bg-gray-900 h-36 sm:h-40 group">
+          <div id="carousel-container" class="w-full h-full relative">
+            <!-- Slide 1 -->
+            <div class="carousel-slide absolute inset-0 transition-opacity duration-500 opacity-100 bg-gradient-to-r from-lazada-navy via-indigo-900 to-lazada-orange p-4 flex items-center justify-between text-white">
+              <div class="space-y-1 max-w-[65%]">
+                <span class="bg-lazada-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Mega Sale 3.3</span>
+                <h2 class="text-lg font-black leading-tight">UP TO 80% OFF TECH & APPLIANCES</h2>
+                <p class="text-[10px] text-gray-200">Free Shipping $0 Min. Spend</p>
+                <button onclick="showToast('Claimed ₱500 Voucher!')" class="mt-1 bg-white text-lazada-orange text-[10px] font-extrabold px-3 py-1 rounded-full shadow">Claim Voucher</button>
               </div>
-              <div>
-                <h4 class="font-bold text-lazada-navy mb-2 border-b pb-1 flex items-center gap-1.5"><i class="fa-solid fa-shirt text-lazada-orange"></i> Fashion</h4>
-                <ul class="space-y-1.5 text-gray-600">
-                  <li><a href="#" onclick="filterByCategory('Fashion')" class="hover:text-lazada-orange block">Men's Apparel</a></li>
-                  <li><a href="#" onclick="filterByCategory('Fashion')" class="hover:text-lazada-orange block">Women's Dresses</a></li>
-                  <li><a href="#" onclick="filterByCategory('Fashion')" class="hover:text-lazada-orange block">Shoes & Sneakers</a></li>
-                  <li><a href="#" onclick="filterByCategory('Fashion')" class="hover:text-lazada-orange block">Bags & Luggage</a></li>
-                </ul>
+              <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=300&q=80" class="w-24 h-24 object-contain drop-shadow-md">
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-slide absolute inset-0 transition-opacity duration-500 opacity-0 bg-gradient-to-r from-pink-600 via-rose-700 to-lazada-navy p-4 flex items-center justify-between text-white">
+              <div class="space-y-1 max-w-[65%]">
+                <span class="bg-white text-pink-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">LazBeauty</span>
+                <h2 class="text-lg font-black leading-tight">BUY 1 GET 1 SKINCARE DEALS</h2>
+                <p class="text-[10px] text-gray-100">Top Brands Guarantee 100%</p>
+                <button onclick="filterCategory('Beauty')" class="mt-1 bg-lazada-pink text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">Shop Skincare</button>
               </div>
-              <div>
-                <h4 class="font-bold text-lazada-navy mb-2 border-b pb-1 flex items-center gap-1.5"><i class="fa-solid fa-house text-lazada-orange"></i> Home & Living</h4>
-                <ul class="space-y-1.5 text-gray-600">
-                  <li><a href="#" onclick="filterByCategory('Home & Living')" class="hover:text-lazada-orange block">Furniture & Decor</a></li>
-                  <li><a href="#" onclick="filterByCategory('Home & Living')" class="hover:text-lazada-orange block">Kitchen Appliances</a></li>
-                  <li><a href="#" onclick="filterByCategory('Home & Living')" class="hover:text-lazada-orange block">Bedding & Bath</a></li>
-                  <li><a href="#" onclick="filterByCategory('Home & Living')" class="hover:text-lazada-orange block">Lighting Tools</a></li>
-                </ul>
+              <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=300&q=80" class="w-24 h-24 object-contain drop-shadow-md">
+            </div>
+          </div>
+          <!-- Dots Nav -->
+          <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
+            <span class="carousel-dot w-2 h-2 rounded-full bg-white"></span>
+            <span class="carousel-dot w-2 h-2 rounded-full bg-white/40"></span>
+          </div>
+        </div>
+
+        <!-- QUICK SHORTCUT GRID (MULTI-ICON GRID) -->
+        <div class="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 grid grid-cols-5 gap-2 text-center text-[10px] font-semibold text-gray-700">
+          <div onclick="filterCategory('LazMall')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center text-lg mb-1 shadow-xs">
+              <i class="fa-solid fa-store"></i>
+            </div>
+            <span>LazMall</span>
+          </div>
+          <div onclick="showToast('Choice items loaded')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg mb-1 shadow-xs">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <span>Choice</span>
+          </div>
+          <div onclick="showToast('Daily Coins Claimed: +10 Coins!')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
+            <div class="w-10 h-10 rounded-2xl bg-yellow-100 text-yellow-600 flex items-center justify-center text-lg mb-1 shadow-xs">
+              <i class="fa-solid fa-coins"></i>
+            </div>
+            <span>Coins</span>
+          </div>
+          <div onclick="showToast('Voucher ₱100 Collected')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
+            <div class="w-10 h-10 rounded-2xl bg-orange-100 text-lazada-orange flex items-center justify-center text-lg mb-1 shadow-xs">
+              <i class="fa-solid fa-ticket"></i>
+            </div>
+            <span>Vouchers</span>
+          </div>
+          <div onclick="showToast('Free Shipping Voucher Claimed!')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
+            <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center text-lg mb-1 shadow-xs">
+              <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <span>Free Ship</span>
+          </div>
+        </div>
+
+        <!-- LAZFLASH / FLASH SALE SECTION -->
+        <section class="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <h3 class="text-sm font-black italic text-lazada-orange flex items-center gap-1">
+                <i class="fa-solid fa-bolt text-yellow-500 animate-bounce"></i> LazFlash
+              </h3>
+              <!-- Countdown Timer -->
+              <div class="flex items-center space-x-0.5 text-[10px] font-black text-white">
+                <span id="flash-h" class="bg-lazada-orange px-1.5 py-0.5 rounded">02</span>
+                <span class="text-lazada-orange">:</span>
+                <span id="flash-m" class="bg-lazada-orange px-1.5 py-0.5 rounded">41</span>
+                <span class="text-lazada-orange">:</span>
+                <span id="flash-s" class="bg-lazada-orange px-1.5 py-0.5 rounded">18</span>
               </div>
-              <div>
-                <h4 class="font-bold text-lazada-navy mb-2 border-b pb-1 flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-lazada-orange"></i> Health & Beauty</h4>
-                <ul class="space-y-1.5 text-gray-600">
-                  <li><a href="#" onclick="filterByCategory('Beauty')" class="hover:text-lazada-orange block">Skincare & Serum</a></li>
-                  <li><a href="#" onclick="filterByCategory('Beauty')" class="hover:text-lazada-orange block">Makeup Essentials</a></li>
-                  <li><a href="#" onclick="filterByCategory('Beauty')" class="hover:text-lazada-orange block">Hair Care & Tools</a></li>
-                  <li><a href="#" onclick="filterByCategory('Beauty')" class="hover:text-lazada-orange block">Personal Care</a></li>
-                </ul>
+            </div>
+            <button onclick="filterCategory('LazFlash')" class="text-[11px] font-bold text-lazada-orange flex items-center">
+              SHOP ALL <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i>
+            </button>
+          </div>
+
+          <!-- HORIZONTAL FLASH SALE SCROLLER -->
+          <div id="flash-sale-scroller" class="flex space-x-2.5 overflow-x-auto scrollbar-none pb-1">
+            <!-- Dynamic Flash Items JS -->
+          </div>
+        </section>
+
+        <!-- "JUST FOR YOU" PRODUCT FEED GRID (2-COL) -->
+        <section class="space-y-2 pt-1">
+          <div class="flex items-center justify-between px-1">
+            <h3 class="text-xs font-black text-lazada-navy uppercase tracking-wide flex items-center gap-1">
+              <i class="fa-solid fa-heart text-lazada-pink"></i> Just For You
+            </h3>
+            <span id="active-filter-label" class="text-[10px] font-semibold text-gray-500 bg-white px-2 py-0.5 rounded-full border">All Items</span>
+          </div>
+
+          <!-- 2-Column Responsive Staggered Feed -->
+          <div id="product-feed-grid" class="grid grid-cols-2 gap-2">
+            <!-- Dynamic Feed Items JS -->
+          </div>
+        </section>
+
+      </div>
+
+      <!-- VIEW 2: FEED / LAZLIVE -->
+      <div id="view-feed" class="hidden p-3 space-y-4">
+        <div class="bg-white p-4 rounded-2xl shadow-xs text-center space-y-3 border border-gray-100">
+          <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto">
+            <i class="fa-solid fa-tower-broadcast"></i>
+          </div>
+          <h2 class="font-bold text-sm text-gray-800">LazLive & Community Feed</h2>
+          <p class="text-xs text-gray-500">Watch live seller streams, unboxing videos, and review showcases!</p>
+          <button onclick="showToast('🔴 Joined Live Stream')" class="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold text-xs px-5 py-2 rounded-full shadow">Watch Live Now</button>
+        </div>
+
+        <div class="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-100 space-y-2 p-3">
+          <div class="flex items-center gap-2">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+            <div>
+              <h4 class="text-xs font-bold text-gray-800">Beauty Official Store</h4>
+              <p class="text-[9px] text-gray-400">Posted 2 hours ago</p>
+            </div>
+          </div>
+          <p class="text-xs text-gray-700">✨ Huge price drop on our Best-selling Hyaluronic Serum! Limited restock alert! 💄</p>
+          <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80" class="w-full h-44 object-cover rounded-xl">
+        </div>
+      </div>
+
+      <!-- VIEW 3: MESSAGES -->
+      <div id="view-messages" class="hidden p-3 space-y-2">
+        <h2 class="text-sm font-black text-lazada-navy px-1">Message Center</h2>
+        <div class="bg-white rounded-2xl divide-y divide-gray-100 border border-gray-100 shadow-xs">
+          <div onclick="showToast('Opening Seller Chat...')" class="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50">
+            <div class="w-10 h-10 rounded-full bg-lazada-orange/10 text-lazada-orange flex items-center justify-center font-bold shrink-0">
+              <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-baseline">
+                <h4 class="text-xs font-bold text-gray-800 truncate">Lazada Promotions</h4>
+                <span class="text-[9px] text-gray-400">10:15 AM</span>
               </div>
+              <p class="text-[11px] text-gray-500 truncate">Your ₱100 Discount voucher expires tonight!</p>
             </div>
           </div>
 
-          <a href="#lazmall" class="hover:text-lazada-orange font-semibold flex items-center gap-1.5 py-2.5">
-            <span class="bg-red-600 text-white text-[9px] px-1 rounded font-black">Laz</span>Mall
-          </a>
-          <a href="#flash-deals" class="hover:text-lazada-orange font-semibold flex items-center gap-1 py-2.5 text-lazada-orange">
-            <i class="fa-solid fa-bolt"></i> Flash Sale
-          </a>
-          <a href="#just-for-you" class="hover:text-lazada-orange font-semibold py-2.5">LazChoice</a>
-          <a href="#" onclick="showToast('Voucher collected: FREE SHIPPING $0 MIN')" class="hover:text-lazada-orange font-semibold py-2.5">Vouchers & Cashback</a>
-        </div>
-        <div class="text-xs text-gray-500 font-medium">
-          <i class="fa-solid fa-shield-halved text-lazada-orange"></i> 100% Authentic Products
+          <div onclick="showToast('Opening Seller Chat...')" class="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50">
+            <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=100&q=80" class="w-10 h-10 rounded-full object-cover shrink-0">
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-baseline">
+                <h4 class="text-xs font-bold text-gray-800 truncate">Samsung Flagship Store</h4>
+                <span class="text-[9px] text-gray-400">Yesterday</span>
+              </div>
+              <p class="text-[11px] text-gray-500 truncate">Thanks for your inquiry! Your order is scheduled for dispatch.</p>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- VIEW 4: ACCOUNT / PROFILE -->
+      <div id="view-account" class="hidden space-y-3 p-3">
+        <!-- Profile Header Card -->
+        <div class="bg-gradient-to-r from-lazada-navy via-indigo-900 to-lazada-orange text-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-white/20 flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-extrabold">Juan Dela Cruz</h3>
+                <span class="bg-amber-400 text-gray-900 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">LazVIP Gold</span>
+              </div>
+            </div>
+            <button onclick="showToast('Settings opened')" class="text-white/80 hover:text-white p-1">
+              <i class="fa-solid fa-gear text-lg"></i>
+            </button>
+          </div>
+
+          <!-- LazWallet & Coins Grid -->
+          <div class="grid grid-cols-3 gap-2 bg-white/10 backdrop-blur-md rounded-xl p-2.5 text-center text-white">
+            <div>
+              <div class="text-[10px] text-gray-200">LazWallet</div>
+              <div class="text-xs font-black">₱2,450.00</div>
+            </div>
+            <div class="border-x border-white/20">
+              <div class="text-[10px] text-gray-200">Coins</div>
+              <div class="text-xs font-black text-amber-300">1,250 🪙</div>
+            </div>
+            <div>
+              <div class="text-[10px] text-gray-200">Vouchers</div>
+              <div class="text-xs font-black">12 Active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MY ORDERS TRACKER -->
+        <div class="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 space-y-3">
+          <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+            <h4 class="text-xs font-black text-gray-800">My Orders</h4>
+            <a href="#" onclick="showToast('Viewing all orders')" class="text-[10px] text-lazada-orange font-bold">View Order History &gt;</a>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-[10px] font-semibold text-gray-600">
+            <div onclick="showToast('No unpaid orders')" class="flex flex-col items-center cursor-pointer">
+              <div class="relative text-xl text-gray-700 mb-1">
+                <i class="fa-solid fa-wallet"></i>
+              </div>
+              <span>To Pay</span>
+            </div>
+            <div onclick="showToast('1 item preparing for dispatch')" class="flex flex-col items-center cursor-pointer">
+              <div class="relative text-xl text-gray-700 mb-1">
+                <i class="fa-solid fa-box-archive"></i>
+                <span class="absolute -top-1 -right-2 bg-lazada-orange text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">1</span>
+              </div>
+              <span>To Ship</span>
+            </div>
+            <div onclick="showToast('2 items on delivery truck')" class="flex flex-col items-center cursor-pointer">
+              <div class="relative text-xl text-gray-700 mb-1">
+                <i class="fa-solid fa-truck"></i>
+                <span class="absolute -top-1 -right-2 bg-lazada-orange text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">2</span>
+              </div>
+              <span>To Receive</span>
+            </div>
+            <div onclick="showToast('Reviews pending')" class="flex flex-col items-center cursor-pointer">
+              <div class="relative text-xl text-gray-700 mb-1">
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <span>To Review</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SERVICES & UTILITIES LIST -->
+        <div class="bg-white rounded-2xl divide-y divide-gray-100 border border-gray-100 shadow-xs text-xs font-medium text-gray-700">
+          <div onclick="showToast('Saved items list')" class="p-3 flex justify-between items-center cursor-pointer">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-heart text-lazada-pink"></i> My Wishlist</span>
+            <span class="text-gray-400 font-bold" id="account-wishlist-count">0 items &gt;</span>
+          </div>
+          <div onclick="showToast('Customer Care Help Desk')" class="p-3 flex justify-between items-center cursor-pointer">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-headset text-blue-500"></i> Help Center & Support</span>
+            <span class="text-gray-400">&gt;</span>
+          </div>
+          <div onclick="showToast('Address Book')" class="p-3 flex justify-between items-center cursor-pointer">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-emerald-500"></i> Delivery Addresses</span>
+            <span class="text-gray-400">&gt;</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM APP NAVIGATION BAR (FIXED BOTTOM BAR) -->
+    <nav class="bg-white border-t border-gray-200 px-2 py-1.5 flex justify-around items-center shrink-0 z-30 text-[10px] font-bold text-gray-500">
+      <button onclick="switchTab('home')" id="tab-home" class="flex flex-col items-center text-lazada-orange transition">
+        <i class="fa-solid fa-house text-base mb-0.5"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="switchTab('feed')" id="tab-feed" class="flex flex-col items-center hover:text-lazada-orange transition">
+        <i class="fa-solid fa-play text-base mb-0.5"></i>
+        <span>Feed</span>
+      </button>
+      <button onclick="switchTab('messages')" id="tab-messages" class="flex flex-col items-center hover:text-lazada-orange transition relative">
+        <i class="fa-solid fa-message text-base mb-0.5"></i>
+        <span>Messages</span>
+      </button>
+      <button onclick="openCartDrawer()" id="tab-cart" class="flex flex-col items-center hover:text-lazada-orange transition relative">
+        <i class="fa-solid fa-cart-shopping text-base mb-0.5"></i>
+        <span>Cart</span>
+      </button>
+      <button onclick="switchTab('account')" id="tab-account" class="flex flex-col items-center hover:text-lazada-orange transition">
+        <i class="fa-solid fa-user text-base mb-0.5"></i>
+        <span>Account</span>
+      </button>
     </nav>
+
+    <!-- PRODUCT DETAIL SLIDE-UP BOTTOM SHEET / MODAL -->
+    <div id="product-modal-backdrop" class="absolute inset-0 bg-black/60 z-50 hidden transition-opacity" onclick="closeProductModal()"></div>
+    <div id="product-modal" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transform translate-y-full transition-transform duration-300 max-h-[85%] flex flex-col">
+      <!-- Drag handle -->
+      <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2 shrink-0"></div>
+
+      <div class="p-4 overflow-y-auto flex-1 space-y-3" id="modal-product-content">
+        <!-- Dynamic Modal JS -->
+      </div>
+
+      <!-- Bottom sheet action bar -->
+      <div class="p-3 border-t bg-white flex gap-2 shrink-0">
+        <button onclick="addToCartFromModal(false)" class="flex-1 bg-orange-100 text-lazada-orange font-extrabold py-2.5 rounded-xl text-xs active:scale-95 transition">
+          Add to Cart
+        </button>
+        <button onclick="addToCartFromModal(true)" class="flex-1 bg-lazada-orange text-white font-extrabold py-2.5 rounded-xl text-xs active:scale-95 transition shadow-md">
+          Buy Now
+        </button>
+      </div>
+    </div>
+
+    <!-- CART DRAWER MODAL -->
+    <div id="cart-drawer-backdrop" class="absolute inset-0 bg-black/60 z-50 hidden transition-opacity" onclick="closeCartDrawer()"></div>
+    <div id="cart-drawer" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transform translate-y-full transition-transform duration-300 max-h-[90%] flex flex-col">
+      <div class="p-3 border-b flex justify-between items-center bg-lazada-navy text-white rounded-t-3xl">
+        <h3 class="font-extrabold text-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-cart-shopping"></i> My Cart (<span id="cart-item-count-label">0</span>)
+        </h3>
+        <button onclick="closeCartDrawer()" class="text-white/80 p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div id="cart-items-container" class="p-3 overflow-y-auto flex-1 space-y-3 divide-y divide-gray-100">
+        <!-- Dynamic Cart JS -->
+      </div>
+
+      <div class="p-3 border-t bg-gray-50 space-y-2 shrink-0">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-500 font-medium">Subtotal</span>
+          <span id="cart-subtotal" class="font-bold text-gray-800">₱0.00</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-500 font-medium">Voucher Discount</span>
+          <span id="cart-discount" class="font-bold text-emerald-600">-₱0.00</span>
+        </div>
+        <div class="flex justify-between items-center text-sm pt-1 border-t">
+          <span class="font-black text-lazada-navy">Total</span>
+          <span id="cart-total" class="font-black text-base text-lazada-orange">₱0.00</span>
+        </div>
+        <button onclick="checkoutCart()" class="w-full bg-lazada-orange text-white py-2.5 rounded-xl font-extrabold text-xs shadow-md active:scale-95 transition">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+
   </div>
 
-  <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 mt-4 space-y-6">
-
-    <!-- HERO SECTION & MAIN BANNER CAROUSEL -->
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      
-      <!-- HERO SLIDER (3 Cols) -->
-      <div class="md:col-span-3 relative rounded-xl overflow-hidden shadow-sm group bg-gray-900 h-[220px] sm:h-[320px]">
-        <!-- Slide Container -->
-        <div id="carousel-slides" class="w-full h-full relative">
-          <!-- Slide 1 -->
-          <div class="carousel-item absolute inset-0 transition-opacity duration-700 ease-in-out opacity-100 flex items-center justify-between p-6 sm:p-12 bg-gradient-to-r from-lazada-navy via-indigo-900 to-purple-900 text-white">
-            <div class="max-w-md z-10 space-y-3">
-              <span class="bg-lazada-orange text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Lazada Mega Sale</span>
-              <h1 class="text-2xl sm:text-4xl font-black leading-tight">UP TO 80% OFF TECH & APPLIANCES</h1>
-              <p class="text-xs sm:text-sm text-gray-200">Exclusive vouchers, free shipping, & 0% interest installment deals.</p>
-              <button onclick="scrollToProducts()" class="bg-lazada-orange hover:bg-lazada-orangeHover text-white px-5 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition">Shop Mega Deals</button>
-            </div>
-            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80" alt="Headphones" class="w-48 sm:w-64 h-auto object-contain hidden sm:block drop-shadow-2xl">
-          </div>
-          <!-- Slide 2 -->
-          <div class="carousel-item absolute inset-0 transition-opacity duration-700 ease-in-out opacity-0 flex items-center justify-between p-6 sm:p-12 bg-gradient-to-r from-pink-600 via-rose-700 to-lazada-navy text-white">
-            <div class="max-w-md z-10 space-y-3">
-              <span class="bg-white text-pink-600 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">LazBeauty Fest</span>
-              <h1 class="text-2xl sm:text-4xl font-black leading-tight">GLOW UP SAVINGS & GIFTS</h1>
-              <p class="text-xs sm:text-sm text-gray-100">Buy 1 Get 1 on top international skincare & cosmetics brands.</p>
-              <button onclick="filterByCategory('Beauty')" class="bg-white text-pink-600 hover:bg-gray-100 px-5 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition">Explore Beauty</button>
-            </div>
-            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80" alt="Beauty" class="w-48 sm:w-64 h-auto object-contain hidden sm:block drop-shadow-2xl">
-          </div>
-          <!-- Slide 3 -->
-          <div class="carousel-item absolute inset-0 transition-opacity duration-700 ease-in-out opacity-0 flex items-center justify-between p-6 sm:p-12 bg-gradient-to-r from-orange-600 via-amber-600 to-lazada-navy text-white">
-            <div class="max-w-md z-10 space-y-3">
-              <span class="bg-lazada-navy text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Fashion Week</span>
-              <h1 class="text-2xl sm:text-4xl font-black leading-tight">STREETWEAR & SNEAKERS</h1>
-              <p class="text-xs sm:text-sm text-gray-100">Authentic sneakers, hoodies, and accessories starting at $9.99.</p>
-              <button onclick="filterByCategory('Fashion')" class="bg-lazada-navy hover:bg-lazada-navyDark text-white px-5 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition">Shop Trends</button>
-            </div>
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80" alt="Sneakers" class="w-48 sm:w-64 h-auto object-contain hidden sm:block drop-shadow-2xl">
-          </div>
-        </div>
-
-        <!-- Carousel Indicators / Nav Buttons -->
-        <button onclick="prevSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm transition">
-          <i class="fa-solid fa-chevron-left text-sm"></i>
-        </button>
-        <button onclick="nextSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm transition">
-          <i class="fa-solid fa-chevron-right text-sm"></i>
-        </button>
-
-        <!-- Slide Dots -->
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
-          <button onclick="goToSlide(0)" class="carousel-dot w-2.5 h-2.5 rounded-full bg-white"></button>
-          <button onclick="goToSlide(1)" class="carousel-dot w-2.5 h-2.5 rounded-full bg-white/50"></button>
-          <button onclick="goToSlide(2)" class="carousel-dot w-2.5 h-2.5 rounded-full bg-white/50"></button>
-        </div>
-      </div>
-
-      <!-- SIDE CARDS / QUICK PROMOS (1 Col) -->
-      <div class="hidden md:flex flex-col gap-3 justify-between">
-        <div class="bg-gradient-to-br from-lazada-orange to-pink-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden h-1/2">
-          <div>
-            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold uppercase">Daily Bonus</span>
-            <h3 class="text-base font-extrabold mt-1">Collect Daily Vouchers</h3>
-            <p class="text-xs text-white/90">Save up to ₱500 off today!</p>
-          </div>
-          <button onclick="collectVoucher('₱500 MEGA DISCOUNT')" class="bg-white text-lazada-orange font-bold text-xs py-1.5 px-3 rounded-md shadow hover:bg-gray-50 self-start mt-2">Collect All</button>
-        </div>
-
-        <div class="bg-gradient-to-br from-lazada-navy to-indigo-800 text-white rounded-xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden h-1/2">
-          <div>
-            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold uppercase">Free Shipping</span>
-            <h3 class="text-base font-extrabold mt-1">Zero Shipping Fee</h3>
-            <p class="text-xs text-gray-200">No minimum spend required</p>
-          </div>
-          <button onclick="collectVoucher('FREE SHIPPING VOUCHER')" class="bg-lazada-orange text-white font-bold text-xs py-1.5 px-3 rounded-md shadow hover:bg-lazada-orangeHover self-start mt-2">Claim Voucher</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ACTION SHORTCUTS BAR -->
-    <section class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 bg-white rounded-xl shadow-sm p-4 text-center gap-2 border border-gray-100">
-      <div onclick="filterByCategory('LazMall')" class="cursor-pointer group flex flex-col items-center">
-        <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl group-hover:scale-110 transition mb-1.5 shadow-xs">
-          <i class="fa-solid fa-store"></i>
-        </div>
-        <span class="text-xs font-semibold text-gray-700 group-hover:text-lazada-orange">LazMall</span>
-      </div>
-      <div onclick="showToast('Choice Items: Free delivery on 3+ items!')" class="cursor-pointer group flex flex-col items-center">
-        <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl group-hover:scale-110 transition mb-1.5 shadow-xs">
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <span class="text-xs font-semibold text-gray-700 group-hover:text-lazada-orange">Choice</span>
-      </div>
-      <div onclick="collectVoucher('DAILY DISCOUNT VOUCHER')" class="cursor-pointer group flex flex-col items-center">
-        <div class="w-12 h-12 rounded-full bg-orange-100 text-lazada-orange flex items-center justify-center text-xl group-hover:scale-110 transition mb-1.5 shadow-xs">
-          <i class="fa-solid fa-ticket"></i>
-        </div>
-        <span class="text-xs font-semibold text-gray-700 group-hover:text-lazada-orange">Vouchers</span>
-      </div>
-      <div onclick="showToast('Free Shipping voucher added!')" class="cursor-pointer group flex flex-col items-center">
-        <div class="w-12 h-12 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl group-hover:scale-110 transition mb-1.5 shadow-xs">
-          <i class="fa-solid fa-truck-fast"></i>
-        </div>
-        <span class="text-xs font-semibold text-gray-700 group-hover:text-lazada-orange">Free Shipping</span>
-      </div>
-      <div onclick="showToast('Topup & eCoupon services opened')" class="cursor-pointer group flex flex-col items-center">
-        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl group-hover:scale-110 transition mb-1.5 shadow-xs">
-          <i class="fa-solid fa-mobile-screen-button"></i>
-        </div>
-        <span class="text-xs font-semibold text-gray-700 group-hover:text-lazada-orange">Topup & eCoupon</span>
-      </div>
-    </section>
-
-    <!-- FLASH DEALS SECTION -->
-    <section id="flash-deals" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-      <div class="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-gray-100 gap-3">
-        <div class="flex items-center space-x-4">
-          <h2 class="text-xl font-extrabold text-lazada-orange italic flex items-center gap-2">
-            <i class="fa-solid fa-bolt text-yellow-500 animate-bounce"></i> FLASH SALE
-          </h2>
-          <!-- COUNTDOWN TIMER -->
-          <div class="flex items-center space-x-1.5 text-xs font-bold text-white">
-            <span class="text-gray-500 font-medium">Ending in:</span>
-            <span id="timer-hours" class="bg-lazada-orange px-2 py-1 rounded">02</span>
-            <span class="text-lazada-orange">:</span>
-            <span id="timer-minutes" class="bg-lazada-orange px-2 py-1 rounded">45</span>
-            <span class="text-lazada-orange">:</span>
-            <span id="timer-seconds" class="bg-lazada-orange px-2 py-1 rounded">12</span>
-          </div>
-        </div>
-        <button onclick="scrollToProducts()" class="text-lazada-orange border border-lazada-orange hover:bg-lazada-orange hover:text-white transition px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider">
-          Shop All Products
-        </button>
-      </div>
-
-      <!-- FLASH SALE HORIZONTAL SLIDER / GRID -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-        <!-- Rendered by JS Flash Items -->
-        <div id="flash-deals-container" class="contents"></div>
-      </div>
-    </section>
-
-    <!-- LAZMALL OFFICIAL STORES -->
-    <section id="lazmall" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <h2 class="text-lg font-black text-lazada-navy">LazMall <span class="text-xs font-normal text-gray-500">100% Authentic Brands</span></h2>
-        </div>
-        <a href="#" class="text-xs text-lazada-navy font-bold hover:text-lazada-orange flex items-center gap-1">Shop More LazMall <i class="fa-solid fa-chevron-right text-[10px]"></i></a>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-        <!-- LazMall Brand Item 1 -->
-        <div onclick="filterByCategory('Electronics')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=200&q=80" alt="Smartwatch" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">Samsung Store</h4>
-          <p class="text-[10px] text-gray-400">Up to 50% Off</p>
-        </div>
-        <!-- LazMall Brand Item 2 -->
-        <div onclick="filterByCategory('Fashion')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=200&q=80" alt="Nike" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">Nike Official</h4>
-          <p class="text-[10px] text-gray-400">Official Flagship</p>
-        </div>
-        <!-- LazMall Brand Item 3 -->
-        <div onclick="filterByCategory('Beauty')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=200&q=80" alt="L'Oreal" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">L'Oréal Paris</h4>
-          <p class="text-[10px] text-gray-400">Buy 1 Get 1 Deals</p>
-        </div>
-        <!-- LazMall Brand Item 4 -->
-        <div onclick="filterByCategory('Electronics')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=200&q=80" alt="Sony" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">Sony Audio</h4>
-          <p class="text-[10px] text-gray-400">Authentic Sound</p>
-        </div>
-        <!-- LazMall Brand Item 5 -->
-        <div onclick="filterByCategory('Home & Living')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=200&q=80" alt="Philips" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">Philips Appliances</h4>
-          <p class="text-[10px] text-gray-400">2-Year Warranty</p>
-        </div>
-        <!-- LazMall Brand Item 6 -->
-        <div onclick="filterByCategory('Fashion')" class="group border border-gray-100 rounded-lg p-3 text-center hover:shadow-md transition cursor-pointer bg-gradient-to-b from-gray-50 to-white relative">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">LazMall</span>
-          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200&q=80" alt="Casio" class="w-24 h-24 object-contain mx-auto my-2 group-hover:scale-105 transition">
-          <h4 class="text-xs font-bold text-gray-800 truncate">Casio Watches</h4>
-          <p class="text-[10px] text-gray-400">Top Rated Store</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- CATEGORIES GRID -->
-    <section class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-      <h2 class="text-lg font-black text-lazada-navy mb-4">Categories</h2>
-      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-8 gap-3">
-        <!-- Category items -->
-        <button onclick="filterByCategory('Electronics')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-laptop text-2xl text-blue-600 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Electronics</span>
-        </button>
-        <button onclick="filterByCategory('Fashion')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-shirt text-2xl text-pink-500 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Fashion</span>
-        </button>
-        <button onclick="filterByCategory('Beauty')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-wand-magic-sparkles text-2xl text-purple-500 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Beauty</span>
-        </button>
-        <button onclick="filterByCategory('Home & Living')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-couch text-2xl text-amber-600 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Home & Living</span>
-        </button>
-        <button onclick="filterByCategory('Sports')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-dumbbell text-2xl text-emerald-600 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Sports</span>
-        </button>
-        <button onclick="filterByCategory('Babies')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-baby text-2xl text-sky-400 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Babies & Toys</span>
-        </button>
-        <button onclick="filterByCategory('Automotive')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-car text-2xl text-red-500 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Motors</span>
-        </button>
-        <button onclick="filterByCategory('Groceries')" class="flex flex-col items-center p-3 border border-gray-100 rounded-lg hover:border-lazada-orange hover:shadow-md transition">
-          <i class="fa-solid fa-basket-shopping text-2xl text-green-600 mb-2"></i>
-          <span class="text-xs text-gray-700 font-medium text-center">Groceries</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- JUST FOR YOU / MAIN PRODUCT FEED -->
-    <section id="just-for-you" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-extrabold text-lazada-navy flex items-center gap-2">
-          Just For You <span id="active-filter-tag" class="text-xs font-normal text-gray-500 bg-white px-2 py-0.5 rounded border">All Items</span>
-        </h2>
-        <!-- Filter pills -->
-        <div class="flex items-center space-x-2 text-xs">
-          <button onclick="filterByCategory('All')" class="px-3 py-1.5 rounded-full bg-lazada-navy text-white font-semibold">All</button>
-          <button onclick="filterByCategory('Electronics')" class="px-3 py-1.5 rounded-full bg-white text-gray-700 hover:bg-gray-100 border font-medium">Electronics</button>
-          <button onclick="filterByCategory('Fashion')" class="px-3 py-1.5 rounded-full bg-white text-gray-700 hover:bg-gray-100 border font-medium hidden sm:inline">Fashion</button>
-        </div>
-      </div>
-
-      <!-- MAIN PRODUCTS GRID -->
-      <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        <!-- Rendered by JS -->
-      </div>
-    </section>
-
-  </main>
-
-  <!-- QUICK VIEW PRODUCT MODAL -->
-  <div id="quickview-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
-    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl animate-fade-in">
-      <button onclick="closeQuickView()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-xl w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="modal-content-container">
-        <!-- Dynamic Modal Content -->
-      </div>
-    </div>
-  </div>
-
-  <!-- SHOPPING CART DRAWER (SLIDE OVER) -->
-  <div id="cart-drawer-overlay" class="fixed inset-0 bg-black/50 z-50 hidden transition-opacity" onclick="toggleCartDrawer()"></div>
-  <div id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
-    <!-- Drawer Header -->
-    <div class="p-4 border-b flex items-center justify-between bg-lazada-navy text-white">
-      <h3 class="font-bold text-base flex items-center gap-2">
-        <i class="fa-solid fa-cart-shopping"></i> Shopping Cart (<span id="cart-drawer-count">0</span>)
-      </h3>
-      <button onclick="toggleCartDrawer()" class="text-white/80 hover:text-white text-lg">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-
-    <!-- Drawer Items Container -->
-    <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-4 divide-y divide-gray-100">
-      <!-- Items dynamically added here -->
-    </div>
-
-    <!-- Drawer Footer / Checkout -->
-    <div class="p-4 border-t bg-gray-50 space-y-3">
-      <div class="flex justify-between items-center text-sm">
-        <span class="text-gray-600 font-medium">Subtotal</span>
-        <span id="cart-subtotal" class="font-bold text-gray-800">₱0.00</span>
-      </div>
-      <div class="flex justify-between items-center text-sm">
-        <span class="text-gray-600 font-medium">Voucher Discount</span>
-        <span id="cart-discount" class="font-bold text-emerald-600">-₱0.00</span>
-      </div>
-      <div class="flex justify-between items-center text-base border-t pt-2">
-        <span class="font-black text-lazada-navy">Total Payment</span>
-        <span id="cart-total" class="font-black text-xl text-lazada-orange">₱0.00</span>
-      </div>
-
-      <button onclick="simulateCheckout()" class="w-full bg-lazada-orange hover:bg-lazada-orangeHover text-white py-3 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
-        Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- FOOTER SECTION -->
-  <footer class="mt-16 bg-white border-t border-gray-200 pt-10 pb-6 text-xs text-gray-600">
-    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-      <div>
-        <h4 class="font-bold text-lazada-navy text-sm mb-3">Customer Care</h4>
-        <ul class="space-y-2">
-          <li><a href="#" class="hover:text-lazada-orange">Help Center</a></li>
-          <li><a href="#" class="hover:text-lazada-orange">How to Buy</a></li>
-          <li><a href="#" class="hover:text-lazada-orange">Shipping & Delivery</a></li>
-          <li><a href="#" class="hover:text-lazada-orange">International Product Policy</a></li>
-          <li><a href="#" class="hover:text-lazada-orange">How to Return</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="font-bold text-lazada-navy text-sm mb-3">Lazada Southeast Asia</h4>
-        <div class="grid grid-cols-2 gap-2">
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-red-500"></i> Philippines</span>
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-red-600"></i> Indonesia</span>
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-blue-500"></i> Malaysia</span>
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-red-400"></i> Singapore</span>
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-red-500"></i> Thailand</span>
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-flag text-yellow-500"></i> Vietnam</span>
-        </div>
-      </div>
-      <div>
-        <h4 class="font-bold text-lazada-navy text-sm mb-3">Payment Methods</h4>
-        <div class="flex flex-wrap gap-2 text-xl text-gray-500">
-          <i class="fa-brands fa-cc-visa text-blue-700"></i>
-          <i class="fa-brands fa-cc-mastercard text-red-500"></i>
-          <i class="fa-brands fa-cc-paypal text-blue-800"></i>
-          <i class="fa-solid fa-wallet text-green-600"></i>
-          <i class="fa-solid fa-money-bill-wave text-emerald-500"></i>
-        </div>
-      </div>
-      <div>
-        <h4 class="font-bold text-lazada-navy text-sm mb-3">Delivery Partners</h4>
-        <div class="flex flex-wrap gap-2 text-xs font-bold text-gray-500">
-          <span class="border px-2 py-1 rounded bg-gray-50">Lazada Express</span>
-          <span class="border px-2 py-1 rounded bg-gray-50">NinjaVan</span>
-          <span class="border px-2 py-1 rounded bg-gray-50">J&T Express</span>
-        </div>
-      </div>
-    </div>
-    <div class="max-w-7xl mx-auto px-4 border-t border-gray-100 pt-6 text-center text-gray-400 text-[11px]">
-      <p>© Lazada 2026. High-Fidelity Interactive Frontend Demo Clone. Crafted with HTML & Tailwind CSS.</p>
-    </div>
-  </footer>
-
-  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <!-- APPLICATION LOGIC JS -->
   <script>
-    // PRODUCT DATA DATABASE
+    // DATABASE OF PRODUCTS
     const products = [
       {
         id: 1,
@@ -603,47 +539,31 @@
         rating: 4.8,
         reviews: 1420,
         sold: "3.4k",
-        location: "Metro Manila",
-        image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=300&q=80",
         isLazMall: true,
-        isFlashSale: true,
+        isChoice: true,
+        isFlash: true,
         flashStock: 82,
         discount: "-64%"
       },
       {
         id: 2,
-        title: "Ultralight Breathable Running Sneakers",
+        title: "Ultralight Breathable Running Sneakers Shoes",
         category: "Fashion",
         price: 1250,
         originalPrice: 3200,
         rating: 4.9,
         reviews: 980,
         sold: "1.9k",
-        location: "Bulacan",
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80",
         isLazMall: true,
-        isFlashSale: true,
+        isChoice: false,
+        isFlash: true,
         flashStock: 45,
         discount: "-60%"
       },
       {
         id: 3,
-        title: "Smart RGB Mechanical Gaming Keyboard Hot-Swappable",
-        category: "Electronics",
-        price: 1850,
-        originalPrice: 4100,
-        rating: 4.7,
-        reviews: 650,
-        sold: "850",
-        location: "Overseas",
-        image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80",
-        isLazMall: false,
-        isFlashSale: true,
-        flashStock: 90,
-        discount: "-55%"
-      },
-      {
-        id: 4,
         title: "Hydrating Hyaluronic Acid Face Serum 50ml",
         category: "Beauty",
         price: 499,
@@ -651,241 +571,153 @@
         rating: 4.9,
         reviews: 2100,
         sold: "5.1k",
-        location: "Metro Manila",
-        image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=300&q=80",
         isLazMall: true,
-        isFlashSale: true,
+        isChoice: true,
+        isFlash: true,
         flashStock: 60,
         discount: "-58%"
       },
       {
-        id: 5,
-        title: "Minimalist Ergonomic Desk Chair Mesh Backrest",
-        category: "Home & Living",
-        price: 2899,
-        originalPrice: 5990,
-        rating: 4.6,
-        reviews: 430,
-        sold: "620",
-        location: "Cebu",
-        image: "https://images.unsplash.com/photo-1580481072645-022f9a6d1270?auto=format&fit=crop&w=400&q=80",
+        id: 4,
+        title: "Smart RGB Mechanical Gaming Keyboard Hot-Swap",
+        category: "Electronics",
+        price: 1850,
+        originalPrice: 4100,
+        rating: 4.7,
+        reviews: 650,
+        sold: "850",
+        image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=300&q=80",
         isLazMall: false,
-        isFlashSale: false,
-        flashStock: 30,
-        discount: "-51%"
+        isChoice: true,
+        isFlash: false,
+        flashStock: 20,
+        discount: "-55%"
       },
       {
-        id: 6,
+        id: 5,
         title: "Stainless Steel Vacuum Insulated Tumbler 1000ml",
-        category: "Home & Living",
+        category: "Choice",
         price: 399,
         originalPrice: 899,
         rating: 4.8,
         reviews: 3200,
         sold: "8.9k",
-        location: "Metro Manila",
-        image: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=300&q=80",
         isLazMall: true,
-        isFlashSale: true,
+        isChoice: true,
+        isFlash: true,
         flashStock: 75,
         discount: "-55%"
       },
       {
-        id: 7,
-        title: "Waterproof Fitness Smart Watch Heart Rate Monitor",
+        id: 6,
+        title: "Waterproof Fitness Smart Watch Heart Rate Tracker",
         category: "Electronics",
         price: 1199,
         originalPrice: 2999,
         rating: 4.7,
         reviews: 890,
         sold: "1.4k",
-        location: "Overseas",
-        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80",
         isLazMall: true,
-        isFlashSale: false,
-        flashStock: 20,
-        discount: "-60%"
-      },
-      {
-        id: 8,
-        title: "Vintage Oversized Cotton Graphic T-Shirt",
-        category: "Fashion",
-        price: 299,
-        originalPrice: 650,
-        rating: 4.5,
-        reviews: 540,
-        sold: "1.1k",
-        location: "Davao",
-        image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80",
-        isLazMall: false,
-        isFlashSale: false,
+        isChoice: false,
+        isFlash: false,
         flashStock: 15,
-        discount: "-54%"
-      },
-      {
-        id: 9,
-        title: "Professional HD Mirrorless Camera Vlog Kit",
-        category: "Electronics",
-        price: 24500,
-        originalPrice: 31000,
-        rating: 4.9,
-        reviews: 210,
-        sold: "310",
-        location: "Metro Manila",
-        image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=400&q=80",
-        isLazMall: true,
-        isFlashSale: false,
-        flashStock: 10,
-        discount: "-21%"
-      },
-      {
-        id: 10,
-        title: "Automatic Espresso Coffee Machine with Milk Frother",
-        category: "Home & Living",
-        price: 7499,
-        originalPrice: 14999,
-        rating: 4.9,
-        reviews: 410,
-        sold: "780",
-        location: "Laguna",
-        image: "https://images.unsplash.com/photo-1517668808822-9e428824603b?auto=format&fit=crop&w=400&q=80",
-        isLazMall: true,
-        isFlashSale: false,
-        flashStock: 25,
-        discount: "-50%"
-      },
-      {
-        id: 11,
-        title: "Non-Stick Ceramic Frying Pan Cookware Set 3pcs",
-        category: "Home & Living",
-        price: 899,
-        originalPrice: 1990,
-        rating: 4.7,
-        reviews: 1100,
-        sold: "2.3k",
-        location: "Metro Manila",
-        image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=400&q=80",
-        isLazMall: false,
-        isFlashSale: true,
-        flashStock: 88,
-        discount: "-54%"
-      },
-      {
-        id: 12,
-        title: "Matte Long-Lasting Liquid Lipstick Velvet Finish",
-        category: "Beauty",
-        price: 199,
-        originalPrice: 450,
-        rating: 4.8,
-        reviews: 3400,
-        sold: "9.2k",
-        location: "Overseas",
-        image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80",
-        isLazMall: true,
-        isFlashSale: true,
-        flashStock: 95,
-        discount: "-55%"
+        discount: "-60%"
       }
     ];
 
-    // STATE MANAGEMENT
+    // STATE VARIABLES
     let cart = [];
     let wishlist = new Set();
-    let currentSlide = 0;
-    let activeCategory = 'All';
+    let currentModalProductId = null;
+    let activeCategory = 'For You';
 
-    // INITIALIZATION ON LOAD
+    // INITIALIZATION
     window.addEventListener('DOMContentLoaded', () => {
-      renderFlashDeals();
-      renderProducts(products);
-      startCarouselAutoSlide();
-      startCountdownTimer();
+      renderFlashSale();
+      renderFeed(products);
+      startTimer();
     });
 
-    // RENDER FLASH SALE PRODUCTS
-    function renderFlashDeals() {
-      const container = document.getElementById('flash-deals-container');
-      const flashItems = products.filter(p => p.isFlashSale);
+    // RENDER FLASH SALE HORIZONTAL SCROLLER
+    function renderFlashSale() {
+      const container = document.getElementById('flash-sale-scroller');
+      const flashItems = products.filter(p => p.isFlash);
 
       container.innerHTML = flashItems.map(p => `
-        <div onclick="openQuickView(${p.id})" class="group bg-white rounded-lg p-2 hover:shadow-lg transition cursor-pointer border border-gray-100 flex flex-col justify-between">
+        <div onclick="openProductModal(${p.id})" class="w-24 shrink-0 bg-gray-50 rounded-xl p-1.5 border border-gray-100 flex flex-col justify-between cursor-pointer active:scale-95 transition">
           <div>
-            <div class="relative overflow-hidden rounded-md mb-2 bg-gray-50 h-32 flex items-center justify-center">
-              <img src="${p.image}" alt="${p.title}" class="object-cover h-full w-full group-hover:scale-105 transition duration-300">
-              <span class="absolute top-1 right-1 bg-lazada-orange text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow">
-                ${p.discount}
-              </span>
+            <div class="relative rounded-lg overflow-hidden h-20 bg-white mb-1">
+              <img src="${p.image}" class="w-full h-full object-cover">
+              <span class="absolute top-0 right-0 bg-lazada-orange text-white text-[8px] font-black px-1 rounded-bl">${p.discount}</span>
             </div>
-            <h4 class="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight">${p.title}</h4>
+            <h4 class="text-[10px] font-semibold text-gray-800 line-clamp-1">${p.title}</h4>
           </div>
-          <div class="mt-2">
-            <div class="text-lazada-orange font-black text-sm">₱${p.price.toLocaleString()}</div>
-            <div class="text-gray-400 text-[10px] line-through">₱${p.originalPrice.toLocaleString()}</div>
-            <!-- Progress Bar -->
-            <div class="mt-1.5 w-full bg-orange-100 rounded-full h-2.5 overflow-hidden relative flex items-center">
-              <div class="bg-gradient-to-r from-lazada-orange to-pink-500 h-full rounded-full" style="width: ${p.flashStock}%"></div>
-              <span class="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white uppercase drop-shadow">${p.flashStock}% SOLD</span>
+          <div class="mt-1">
+            <div class="text-lazada-orange font-black text-xs">₱${p.price.toLocaleString()}</div>
+            <div class="w-full bg-orange-100 rounded-full h-2 relative overflow-hidden mt-1">
+              <div class="bg-lazada-orange h-full" style="width: ${p.flashStock}%"></div>
             </div>
           </div>
         </div>
       `).join('');
     }
 
-    // RENDER PRODUCT FEED
-    function renderProducts(items) {
-      const grid = document.getElementById('product-grid');
+    // RENDER 2-COLUMN MAIN PRODUCT FEED
+    function renderFeed(items) {
+      const container = document.getElementById('product-feed-grid');
       
       if (items.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 font-medium">No products match your search or filter.</div>`;
+        container.innerHTML = `<div class="col-span-2 py-8 text-center text-xs text-gray-500">No items found for this filter.</div>`;
         return;
       }
 
-      grid.innerHTML = items.map(p => {
+      container.innerHTML = items.map(p => {
         const isFav = wishlist.has(p.id);
         return `
-          <div class="group bg-white rounded-xl overflow-hidden shadow-xs hover:shadow-xl border border-gray-100 transition duration-300 flex flex-col justify-between relative">
+          <div class="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-100 flex flex-col justify-between relative cursor-pointer active:scale-98 transition">
             
-            <!-- Wishlist Heart Button -->
-            <button onclick="toggleWishlist(event, ${p.id})" class="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-gray-400 hover:text-lazada-pink flex items-center justify-center transition shadow-xs">
-              <i class="fa-${isFav ? 'solid text-lazada-pink' : 'regular'} fa-heart text-xs"></i>
+            <!-- Wishlist Heart -->
+            <button onclick="toggleWishlist(event, ${p.id})" class="absolute top-1.5 right-1.5 z-10 w-6 h-6 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center text-xs">
+              <i class="fa-${isFav ? 'solid text-lazada-pink' : 'regular text-gray-400'} fa-heart"></i>
             </button>
 
-            <div onclick="openQuickView(${p.id})" class="cursor-pointer">
-              <!-- Image Container -->
-              <div class="relative bg-gray-50 h-40 overflow-hidden">
-                <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                ${p.isLazMall ? `<span class="absolute bottom-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow">LazMall</span>` : ''}
+            <div onclick="openProductModal(${p.id})">
+              <!-- Thumbnail -->
+              <div class="relative bg-gray-100 h-36 overflow-hidden">
+                <img src="${p.image}" class="w-full h-full object-cover">
+                <div class="absolute bottom-1 left-1 flex gap-1">
+                  ${p.isLazMall ? `<span class="bg-red-600 text-white text-[8px] font-black px-1 rounded">LazMall</span>` : ''}
+                  ${p.isChoice ? `<span class="bg-amber-500 text-white text-[8px] font-black px-1 rounded">Choice</span>` : ''}
+                </div>
               </div>
 
-              <!-- Details Container -->
-              <div class="p-3">
-                <h3 class="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug group-hover:text-lazada-orange transition">${p.title}</h3>
+              <!-- Product Info -->
+              <div class="p-2 space-y-1">
+                <h4 class="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight">${p.title}</h4>
                 
-                <div class="mt-2 flex items-baseline gap-1">
-                  <span class="text-lazada-orange font-black text-base">₱${p.price.toLocaleString()}</span>
-                  <span class="text-gray-400 text-[10px] line-through">₱${p.originalPrice.toLocaleString()}</span>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-lazada-orange font-black text-sm">₱${p.price.toLocaleString()}</span>
+                  <span class="text-gray-400 text-[9px] line-through">₱${p.originalPrice.toLocaleString()}</span>
                 </div>
 
-                <!-- Rating & Sales -->
-                <div class="flex items-center space-x-1 mt-1 text-[10px] text-gray-500">
-                  <span class="text-amber-400 font-bold flex items-center gap-0.5"><i class="fa-solid fa-star text-[9px]"></i> ${p.rating}</span>
-                  <span>(${p.reviews})</span>
-                  <span>•</span>
-                  <span>${p.sold} sold</span>
+                <div class="flex items-center space-x-1 text-[9px] text-gray-500">
+                  <span class="text-amber-400 font-bold flex items-center"><i class="fa-solid fa-star text-[8px] mr-0.5"></i>${p.rating}</span>
+                  <span>• ${p.sold} sold</span>
                 </div>
 
-                <!-- Location tag -->
-                <div class="mt-2 text-[10px] text-gray-400 flex items-center justify-between">
-                  <span><i class="fa-solid fa-location-dot text-[9px]"></i> ${p.location}</span>
-                  <span class="text-teal-600 font-semibold">Free Shipping</span>
+                <div class="text-[9px] text-teal-600 font-bold pt-0.5">
+                  <i class="fa-solid fa-truck-fast"></i> Free Shipping
                 </div>
               </div>
             </div>
 
-            <!-- Quick Add Button -->
+            <!-- Add to Cart Quick Button -->
             <div class="p-2 pt-0">
-              <button onclick="addToCart(${p.id})" class="w-full bg-orange-50 hover:bg-lazada-orange text-lazada-orange hover:text-white font-bold text-xs py-1.5 rounded-lg border border-orange-200 transition">
-                + Add to Cart
+              <button onclick="addToCartDirect(${p.id})" class="w-full bg-orange-50 text-lazada-orange hover:bg-lazada-orange hover:text-white font-bold text-[10px] py-1 rounded-lg border border-orange-200 transition">
+                + Add
               </button>
             </div>
           </div>
@@ -893,203 +725,138 @@
       }).join('');
     }
 
-    // CAROUSEL FUNCTIONALITY
-    function startCarouselAutoSlide() {
-      setInterval(() => {
-        nextSlide();
-      }, 4500);
-    }
-
-    function showSlide(index) {
-      const slides = document.querySelectorAll('.carousel-item');
-      const dots = document.querySelectorAll('.carousel-dot');
-      
-      slides.forEach((slide, i) => {
-        if (i === index) {
-          slide.classList.remove('opacity-0');
-          slide.classList.add('opacity-100');
-        } else {
-          slide.classList.remove('opacity-100');
-          slide.classList.add('opacity-0');
-        }
-      });
-
-      dots.forEach((dot, i) => {
-        if (i === index) {
-          dot.classList.remove('bg-white/50');
-          dot.classList.add('bg-white');
-        } else {
-          dot.classList.remove('bg-white');
-          dot.classList.add('bg-white/50');
-        }
-      });
-
-      currentSlide = index;
-    }
-
-    function nextSlide() {
-      const total = document.querySelectorAll('.carousel-item').length;
-      showSlide((currentSlide + 1) % total);
-    }
-
-    function prevSlide() {
-      const total = document.querySelectorAll('.carousel-item').length;
-      showSlide((currentSlide - 1 + total) % total);
-    }
-
-    function goToSlide(index) {
-      showSlide(index);
-    }
-
-    // COUNTDOWN TIMER LOGIC
-    function startCountdownTimer() {
-      let hours = 2, minutes = 45, seconds = 12;
-      setInterval(() => {
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes--;
-          } else {
-            minutes = 59;
-            if (hours > 0) hours--;
-          }
-        }
-        document.getElementById('timer-hours').innerText = String(hours).padStart(2, '0');
-        document.getElementById('timer-minutes').innerText = String(minutes).padStart(2, '0');
-        document.getElementById('timer-seconds').innerText = String(seconds).padStart(2, '0');
-      }, 1000);
-    }
-
-    // FILTER BY CATEGORY
-    function filterByCategory(cat) {
+    // CATEGORY TAB FILTERING
+    function filterCategory(cat, element) {
       activeCategory = cat;
-      document.getElementById('active-filter-tag').innerText = cat;
+      document.getElementById('active-filter-label').innerText = cat;
 
-      if (cat === 'All') {
-        renderProducts(products);
+      if (element) {
+        document.querySelectorAll('.category-tab').forEach(el => {
+          el.classList.remove('border-white', 'text-white');
+          el.classList.add('border-transparent', 'text-white/80');
+        });
+        element.classList.remove('border-transparent', 'text-white/80');
+        element.classList.add('border-white', 'text-white');
+      }
+
+      if (cat === 'For You') {
+        renderFeed(products);
       } else if (cat === 'LazMall') {
-        renderProducts(products.filter(p => p.isLazMall));
+        renderFeed(products.filter(p => p.isLazMall));
+      } else if (cat === 'Choice') {
+        renderFeed(products.filter(p => p.isChoice));
+      } else if (cat === 'LazFlash') {
+        renderFeed(products.filter(p => p.isFlash));
       } else {
-        renderProducts(products.filter(p => p.category.toLowerCase().includes(cat.toLowerCase())));
+        renderFeed(products.filter(p => p.category.toLowerCase().includes(cat.toLowerCase())));
       }
-
-      scrollToProducts();
     }
 
-    function scrollToProducts() {
-      document.getElementById('just-for-you').scrollIntoView({ behavior: 'smooth' });
-    }
+    // PRODUCT MODAL (BOTTOM SHEET)
+    function openProductModal(id) {
+      const p = products.find(item => item.id === id);
+      if (!p) return;
 
-    // SEARCH FUNCTIONALITY
-    function handleSearch() {
-      const query = document.getElementById('search-input').value.toLowerCase().trim();
-      const dropdown = document.getElementById('search-results-dropdown');
+      currentModalProductId = id;
+      const content = document.getElementById('modal-product-content');
 
-      if (!query) {
-        dropdown.classList.add('hidden');
-        renderProducts(products);
-        return;
-      }
+      content.innerHTML = `
+        <div class="relative bg-gray-100 rounded-2xl h-48 overflow-hidden">
+          <img src="${p.image}" class="w-full h-full object-cover">
+          <span class="absolute top-2 right-2 bg-lazada-orange text-white text-xs font-black px-2 py-0.5 rounded-full">${p.discount}</span>
+        </div>
 
-      const matches = products.filter(p => p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
-
-      if (matches.length > 0) {
-        dropdown.innerHTML = matches.map(p => `
-          <div onclick="selectSearchMatch(${p.id})" class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 flex items-center justify-between">
-            <span class="text-xs font-medium text-gray-700 truncate">${p.title}</span>
-            <span class="text-xs font-bold text-lazada-orange">₱${p.price.toLocaleString()}</span>
+        <div>
+          ${p.isLazMall ? `<span class="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">LazMall Official</span>` : ''}
+          <h3 class="text-sm font-bold text-gray-800 mt-1">${p.title}</h3>
+          
+          <div class="bg-orange-50 p-2.5 rounded-xl border border-orange-100 mt-2 space-y-0.5">
+            <div class="flex items-baseline space-x-2">
+              <span class="text-xl font-black text-lazada-orange">₱${p.price.toLocaleString()}</span>
+              <span class="text-xs text-gray-400 line-through">₱${p.originalPrice.toLocaleString()}</span>
+            </div>
+            <p class="text-[10px] text-teal-700 font-bold"><i class="fa-solid fa-truck-fast"></i> Guaranteed Free Shipping voucher auto-applied</p>
           </div>
-        `).join('');
-        dropdown.classList.remove('hidden');
-      } else {
-        dropdown.innerHTML = `<div class="p-3 text-xs text-gray-500 text-center">No results found for "${query}"</div>`;
-        dropdown.classList.remove('hidden');
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-gray-700">Variation:</label>
+          <div class="flex space-x-2 text-xs">
+            <button class="px-3 py-1 border-2 border-lazada-orange text-lazada-orange font-bold rounded-lg bg-orange-50">Standard</button>
+            <button class="px-3 py-1 border border-gray-200 text-gray-600 rounded-lg">Pro Combo (+₱150)</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('product-modal-backdrop').classList.remove('hidden');
+      document.getElementById('product-modal').classList.remove('translate-y-full');
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal-backdrop').classList.add('hidden');
+      document.getElementById('product-modal').classList.add('translate-y-full');
+    }
+
+    function addToCartFromModal(buyNow = false) {
+      if (currentModalProductId) {
+        addToCartDirect(currentModalProductId);
+        closeProductModal();
+        if (buyNow) openCartDrawer();
       }
-
-      renderProducts(matches);
-    }
-
-    function selectSearchMatch(id) {
-      document.getElementById('search-results-dropdown').classList.add('hidden');
-      openQuickView(id);
-    }
-
-    function triggerSearch() {
-      handleSearch();
-      scrollToProducts();
-    }
-
-    // WISHLIST TOGGLE
-    function toggleWishlist(e, id) {
-      e.stopPropagation();
-      if (wishlist.has(id)) {
-        wishlist.delete(id);
-        showToast('Item removed from Wishlist');
-      } else {
-        wishlist.add(id);
-        showToast('Saved to your Wishlist ❤');
-      }
-      renderProducts(products);
     }
 
     // CART OPERATIONS
-    function addToCart(productId, qty = 1) {
-      const item = products.find(p => p.id === productId);
-      if (!item) return;
+    function addToCartDirect(id) {
+      const p = products.find(item => item.id === id);
+      if (!p) return;
 
-      const existing = cart.find(c => c.id === productId);
+      const existing = cart.find(item => item.id === id);
       if (existing) {
-        existing.quantity += qty;
+        existing.qty += 1;
       } else {
-        cart.push({ ...item, quantity: qty });
+        cart.push({ ...p, qty: 1 });
       }
 
       updateCartBadge();
-      showToast(`Added "${item.title.substring(0, 20)}..." to Cart!`);
+      showToast(`Added "${p.title.substring(0, 18)}..." to Cart!`);
     }
 
     function updateCartBadge() {
-      const totalCount = cart.reduce((acc, curr) => acc + curr.quantity, 0);
-      document.getElementById('cart-count-badge').innerText = totalCount;
-      document.getElementById('cart-drawer-count').innerText = totalCount;
-      renderCartDrawer();
+      const total = cart.reduce((sum, item) => sum + item.qty, 0);
+      document.getElementById('cart-badge-count').innerText = total;
+      document.getElementById('cart-item-count-label').innerText = total;
+      renderCartItems();
     }
 
-    function toggleCartDrawer() {
-      const drawer = document.getElementById('cart-drawer');
-      const overlay = document.getElementById('cart-drawer-overlay');
-
-      if (drawer.classList.contains('translate-x-full')) {
-        drawer.classList.remove('translate-x-full');
-        overlay.classList.remove('hidden');
-        renderCartDrawer();
-      } else {
-        drawer.classList.add('translate-x-full');
-        overlay.classList.add('hidden');
-      }
+    function openCartDrawer() {
+      renderCartItems();
+      document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.remove('translate-y-full');
     }
 
-    function updateQuantity(id, change) {
-      const item = cart.find(c => c.id === id);
+    function closeCartDrawer() {
+      document.getElementById('cart-drawer-backdrop').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.add('translate-y-full');
+    }
+
+    function updateQty(id, delta) {
+      const item = cart.find(i => i.id === id);
       if (!item) return;
 
-      item.quantity += change;
-      if (item.quantity <= 0) {
-        cart = cart.filter(c => c.id !== id);
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(i => i.id !== id);
       }
       updateCartBadge();
     }
 
-    function renderCartDrawer() {
-      const container = document.getElementById('cart-items-list');
+    function renderCartItems() {
+      const container = document.getElementById('cart-items-container');
       if (cart.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-12 space-y-3">
-            <i class="fa-solid fa-cart-arrow-down text-4xl text-gray-300"></i>
-            <p class="text-sm font-medium text-gray-500">Your shopping cart is empty</p>
-            <button onclick="toggleCartDrawer()" class="bg-lazada-orange text-white text-xs font-bold px-4 py-2 rounded-lg">Start Shopping</button>
+          <div class="py-12 text-center text-xs text-gray-400 space-y-2">
+            <i class="fa-solid fa-cart-shopping text-3xl"></i>
+            <p>Your Lazada cart is empty</p>
           </div>
         `;
         document.getElementById('cart-subtotal').innerText = '₱0.00';
@@ -1100,22 +867,21 @@
 
       let subtotal = 0;
       container.innerHTML = cart.map(item => {
-        const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
+        subtotal += item.price * item.qty;
         return `
-          <div class="pt-3 flex gap-3 items-center">
-            <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-md border border-gray-200 shrink-0">
-            <div class="flex-1">
-              <h4 class="text-xs font-bold text-gray-800 line-clamp-1">${item.title}</h4>
-              <div class="text-xs text-lazada-orange font-bold mt-1">₱${item.price.toLocaleString()}</div>
-              <div class="flex items-center space-x-2 mt-2">
-                <button onclick="updateQuantity(${item.id}, -1)" class="w-5 h-5 bg-gray-200 text-gray-700 rounded flex items-center justify-center font-bold text-xs">-</button>
-                <span class="text-xs font-bold px-1">${item.quantity}</span>
-                <button onclick="updateQuantity(${item.id}, 1)" class="w-5 h-5 bg-gray-200 text-gray-700 rounded flex items-center justify-center font-bold text-xs">+</button>
+          <div class="pt-2 flex gap-2 items-center">
+            <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover border border-gray-100 shrink-0">
+            <div class="flex-1 min-w-0">
+              <h5 class="text-xs font-bold text-gray-800 truncate">${item.title}</h5>
+              <div class="text-xs text-lazada-orange font-extrabold">₱${item.price.toLocaleString()}</div>
+              <div class="flex items-center space-x-2 mt-1">
+                <button onclick="updateQty(${item.id}, -1)" class="w-4 h-4 bg-gray-200 text-xs font-bold rounded flex items-center justify-center">-</button>
+                <span class="text-xs font-bold">${item.qty}</span>
+                <button onclick="updateQty(${item.id}, 1)" class="w-4 h-4 bg-gray-200 text-xs font-bold rounded flex items-center justify-center">+</button>
               </div>
             </div>
-            <button onclick="updateQuantity(${item.id}, -${item.quantity})" class="text-gray-400 hover:text-red-500 text-sm p-1">
-              <i class="fa-solid fa-trash-can"></i>
+            <button onclick="updateQty(${item.id}, -${item.qty})" class="text-gray-400 hover:text-red-500 p-1">
+              <i class="fa-solid fa-trash-can text-xs"></i>
             </button>
           </div>
         `;
@@ -1129,138 +895,141 @@
       document.getElementById('cart-total').innerText = `₱${total.toLocaleString()}`;
     }
 
-    // QUICK VIEW MODAL
-    function openQuickView(id) {
-      const p = products.find(item => item.id === id);
-      if (!p) return;
-
-      const modal = document.getElementById('quickview-modal');
-      const container = document.getElementById('modal-content-container');
-
-      container.innerHTML = `
-        <div class="space-y-3">
-          <div class="h-64 sm:h-80 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
-            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover">
-          </div>
-          <div class="flex gap-2">
-            <img src="${p.image}" class="w-14 h-14 object-cover rounded-md border-2 border-lazada-orange">
-            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 object-cover rounded-md border opacity-60">
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            ${p.isLazMall ? `<span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">LazMall Official</span>` : ''}
-            <h2 class="text-lg font-bold text-gray-800 mt-2 leading-tight">${p.title}</h2>
-            <div class="flex items-center space-x-2 mt-2 text-xs text-gray-500">
-              <span class="text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-star"></i> ${p.rating}</span>
-              <span>(${p.reviews} Ratings)</span>
-              <span>•</span>
-              <span class="text-gray-600 font-semibold">${p.sold} Sold</span>
-            </div>
-          </div>
-
-          <div class="bg-orange-50 p-3 rounded-xl border border-orange-100 space-y-1">
-            <div class="flex items-baseline space-x-2">
-              <span class="text-2xl font-black text-lazada-orange">₱${p.price.toLocaleString()}</span>
-              <span class="text-xs text-gray-400 line-through">₱${p.originalPrice.toLocaleString()}</span>
-              <span class="bg-lazada-orange text-white text-[10px] font-bold px-1.5 py-0.5 rounded">${p.discount}</span>
-            </div>
-            <p class="text-[11px] text-teal-700 font-medium flex items-center gap-1">
-              <i class="fa-solid fa-truck-fast"></i> Free Shipping Voucher Applied
-            </p>
-          </div>
-
-          <!-- Color/Variant Selector Demo -->
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-gray-700">Select Variation:</label>
-            <div class="flex space-x-2 text-xs">
-              <button class="px-3 py-1.5 border-2 border-lazada-orange text-lazada-orange font-bold rounded-lg bg-orange-50">Standard Edition</button>
-              <button class="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg hover:border-gray-400">Pro Bundle (+₱200)</button>
-            </div>
-          </div>
-
-          <!-- Quantity Selector -->
-          <div class="flex items-center space-x-4">
-            <label class="text-xs font-bold text-gray-700">Quantity:</label>
-            <div class="flex items-center border border-gray-300 rounded-lg">
-              <button onclick="decrementModalQty()" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">-</button>
-              <span id="modal-qty" class="px-4 py-1 text-xs font-bold">1</span>
-              <button onclick="incrementModalQty()" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">+</button>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="grid grid-cols-2 gap-3 pt-2">
-            <button onclick="addModalItemToCart(${p.id}, false)" class="bg-orange-100 hover:bg-orange-200 text-lazada-orange font-bold py-3 rounded-xl text-xs transition">
-              Add to Cart
-            </button>
-            <button onclick="addModalItemToCart(${p.id}, true)" class="bg-lazada-orange hover:bg-lazada-orangeHover text-white font-bold py-3 rounded-xl text-xs shadow-md transition">
-              Buy Now
-            </button>
-          </div>
-        </div>
-      `;
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeQuickView() {
-      document.getElementById('quickview-modal').classList.add('hidden');
-    }
-
-    function incrementModalQty() {
-      const qtyEl = document.getElementById('modal-qty');
-      qtyEl.innerText = parseInt(qtyEl.innerText) + 1;
-    }
-
-    function decrementModalQty() {
-      const qtyEl = document.getElementById('modal-qty');
-      if (parseInt(qtyEl.innerText) > 1) {
-        qtyEl.innerText = parseInt(qtyEl.innerText) - 1;
-      }
-    }
-
-    function addModalItemToCart(id, buyNow = false) {
-      const qty = parseInt(document.getElementById('modal-qty').innerText);
-      addToCart(id, qty);
-      closeQuickView();
-      if (buyNow) {
-        toggleCartDrawer();
-      }
-    }
-
-    // CHECKOUT SIMULATION
-    function simulateCheckout() {
+    function checkoutCart() {
       if (cart.length === 0) {
-        showToast('Your cart is empty!');
+        showToast('Cart is empty!');
+        return;
+      }
+      showToast('🎉 Order placed successfully on Lazada!');
+      cart = [];
+      updateCartBadge();
+      closeCartDrawer();
+    }
+
+    // WISHLIST TOGGLE
+    function toggleWishlist(e, id) {
+      e.stopPropagation();
+      if (wishlist.has(id)) {
+        wishlist.delete(id);
+        showToast('Removed from Wishlist');
+      } else {
+        wishlist.add(id);
+        showToast('Added to Wishlist ❤');
+      }
+      document.getElementById('account-wishlist-count').innerText = `${wishlist.size} items >`;
+      renderFeed(products);
+    }
+
+    // TAB NAVIGATION SWITCHER
+    function switchTab(tab) {
+      const views = ['home', 'feed', 'messages', 'account'];
+      views.forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+      });
+
+      // Show requested view
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+      // Update Nav highlighting
+      const navTabs = ['home', 'feed', 'messages', 'cart', 'account'];
+      navTabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) {
+          if (t === tab) {
+            btn.classList.add('text-lazada-orange');
+            btn.classList.remove('text-gray-500');
+          } else {
+            btn.classList.remove('text-lazada-orange');
+            btn.classList.add('text-gray-500');
+          }
+        }
+      });
+    }
+
+    // VIEW MODE SWITCHER (Frame vs Full Viewport)
+    function toggleViewMode(mode) {
+      const body = document.getElementById('app-body');
+      const container = document.getElementById('phone-container');
+      const btnFrame = document.getElementById('btn-mode-frame');
+      const btnFull = document.getElementById('btn-mode-full');
+
+      if (mode === 'full') {
+        body.classList.remove('device-mockup');
+        container.classList.remove('mobile-frame');
+        container.classList.add('w-full', 'max-w-md', 'mx-auto', 'h-screen');
+        btnFull.classList.replace('bg-gray-700', 'bg-lazada-orange');
+        btnFrame.classList.replace('bg-lazada-orange', 'bg-gray-700');
+      } else {
+        body.classList.add('device-mockup');
+        container.classList.add('mobile-frame');
+        container.classList.remove('w-full', 'max-w-md', 'mx-auto', 'h-screen');
+        btnFrame.classList.replace('bg-gray-700', 'bg-lazada-orange');
+        btnFull.classList.replace('bg-lazada-orange', 'bg-gray-700');
+      }
+    }
+
+    // COUNTDOWN TIMER LOGIC
+    function startTimer() {
+      let h = 2, m = 41, s = 18;
+      setInterval(() => {
+        if (s > 0) s--;
+        else {
+          s = 59;
+          if (m > 0) m--;
+          else {
+            m = 59;
+            if (h > 0) h--;
+          }
+        }
+        document.getElementById('flash-h').innerText = String(h).padStart(2, '0');
+        document.getElementById('flash-m').innerText = String(m).padStart(2, '0');
+        document.getElementById('flash-s').innerText = String(s).padStart(2, '0');
+      }, 1000);
+    }
+
+    // LIVE SEARCH
+    function handleSearch() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      const dropdown = document.getElementById('search-dropdown');
+
+      if (!q) {
+        dropdown.classList.add('hidden');
+        renderFeed(products);
         return;
       }
 
-      showToast('🎉 Order placed successfully! Thank you for shopping on Lazada.');
-      cart = [];
-      updateCartBadge();
-      toggleCartDrawer();
+      const matches = products.filter(p => p.title.toLowerCase().includes(q));
+
+      if (matches.length > 0) {
+        dropdown.innerHTML = matches.map(p => `
+          <div onclick="openProductModal(${p.id}); document.getElementById('search-dropdown').classList.add('hidden');" class="p-2.5 hover:bg-gray-50 border-b border-gray-50 text-xs flex justify-between items-center cursor-pointer">
+            <span class="truncate pr-2 font-medium">${p.title}</span>
+            <span class="font-bold text-lazada-orange">₱${p.price}</span>
+          </div>
+        `).join('');
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center">No results for "${q}"</div>`;
+        dropdown.classList.remove('hidden');
+      }
+
+      renderFeed(matches);
     }
 
-    function collectVoucher(voucherName) {
-      showToast(`Collected: ${voucherName}`);
-    }
-
-    // TOAST NOTIFICATION UTILITY
-    function showToast(message) {
+    // TOAST NOTIFICATIONS
+    function showToast(msg) {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      toast.className = 'toast-slide bg-lazada-navy text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-lazada-orange/30 text-xs font-semibold pointer-events-auto';
+      toast.className = 'toast-slide bg-lazada-navy text-white px-3.5 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-lazada-orange/40 text-xs font-semibold';
       toast.innerHTML = `
-        <i class="fa-solid fa-circle-check text-lazada-orange text-base"></i>
-        <span>${message}</span>
+        <i class="fa-solid fa-circle-check text-lazada-orange text-sm"></i>
+        <span>${msg}</span>
       `;
       container.appendChild(toast);
 
       setTimeout(() => {
         toast.remove();
-      }, 3000);
+      }, 2700);
     }
   </script>
 </body>
